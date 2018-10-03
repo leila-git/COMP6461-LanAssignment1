@@ -193,13 +193,6 @@ public class Httpc {
 		
 	}
 	
-		
-		
-		
-
-	
-	
-	
 	
 //Help Method
 	
