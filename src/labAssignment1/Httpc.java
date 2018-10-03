@@ -5,13 +5,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-//import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public class Httpc {
 	private static Scanner scanner;
-	
+
+//Main Method	
 	public static void main(String[] args) {
 		
 		System.out.println("Please enter http command");
@@ -40,26 +39,26 @@ public class Httpc {
 			}
 			
 		}else if (inputStrArray[0].equals("httpc") & inputStrArray[1].equals("post")) {
-			httpc.httpcPost(inputStrArray);
+			try {
+				httpc.httpcPost(inputStrArray);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 	}
 	
 	
 	
-	
+//Get Method	
 	public void httpcGet(String[] str) throws IOException {
 		String host="";
 		String strGetUrl="";
 		String[] strGetHostArray;
-		String[] strGetBodyArray;
-		String[] strKeyValues;
-		String strParam="";
 		String strBody="";
-		Map<String,String> urlMap;
-		String[] strKeyValuesMap;
 	
-//get without any option
+   //Get with query parameters
 		if(str.length==3) {
 		strGetUrl=str[2];
 		strGetUrl=strGetUrl.replace("'", "");
@@ -70,17 +69,6 @@ public class Httpc {
 		
 		//Body and Parameters
 		strBody=strGetHostArray[3];
-//		strGetBodyArray=strBody.split("\\?");
-//		
-//		strParam=strGetBodyArray[1];
-//		strKeyValues=strParam.split("&");
-//		
-//		//Key & Value
-//		for (int i = 0; i < strKeyValues.length; i++) {
-//			strKeyValuesMap=strKeyValues[i].split("=");	
-//			urlMap=new HashMap<>();
-//			urlMap.put(strKeyValuesMap[0], strKeyValuesMap[1]);
-//		}
 		
 		@SuppressWarnings("resource")
 		Socket mySocket=new Socket(host,80);
@@ -96,21 +84,18 @@ public class Httpc {
 
         //Prints each line of the response 
         while((outStr = bufRead.readLine()) != null){
-        	totalOutStr = totalOutStr + outStr  +System.lineSeparator(); 
+        	totalOutStr = totalOutStr + outStr +System.lineSeparator(); 
         }
         int splitat=totalOutStr.indexOf("{");
         String verbosePart = totalOutStr.substring(0, splitat) ;
-  //      String body = totalOutStr.substring(splitat +1);
-//        System.out.println(totalOutStr);
-//        System.out.println("split at" +splitat);
         System.out.println(verbosePart);
         
         //Closes out buffer and writer
         bufRead.close();
-        wtr.close();
+        wtr.close();                          
 		}
 	
-//get with -v
+   //Get with verbose option
 		if(str.length==4 & str[2].equals("-v")) {
 			strGetUrl=str[3];
 			strGetUrl=strGetUrl.replace("'", "");
@@ -148,18 +133,75 @@ public class Httpc {
 	}
 	
 	
+//Post Method
 	
-	
-	
-	
-	
-	public void httpcPost(String[] str) {
+	public void httpcPost(String[] str) throws IOException {
+		String strUrl=str[str.length-1];;
+		String content_Type="";
+		String content_Data="";
+		String[] strUrlArray;
+		String[] contentTypeArray;
+		String[] contentDataArray;
+		String host="";
+		String content_Type_Info="";
+		String content_Data_Info="";
+		
+		for (int i = 0; i < str.length; i++) {
+			if(str[i].equals("-h")) {
+				content_Type=str[i+1];
+			}else if (str[i].equals("-d")) {
+				content_Data=str[i+1];
+			}
+		}
+		
+		//host
+		strUrlArray=strUrl.split("/");
+		host=strUrlArray[2];
+		
+		//Content_Type
+		contentTypeArray=content_Type.split(":");
+		content_Type_Info=contentTypeArray[0]+":"+contentTypeArray[1];
+		
+		//Content_Data
+		contentDataArray=content_Data.split(":");
+		content_Data_Info=contentDataArray[0]+":"+contentDataArray[1];
+		int varLen=content_Data_Info.length();
+		
+		@SuppressWarnings("resource")
+		Socket mySocket=new Socket(host,80);
+		 PrintWriter wtr = new PrintWriter(mySocket.getOutputStream());
+		 wtr.println("POST /post HTTP/1.1");
+	     wtr.println("Host: "+ host);
+	     wtr.println(content_Type_Info);
+	     wtr.println("Content-Length: " + varLen);
+	     wtr.println("");
+	     wtr.print(content_Data_Info);
+	     wtr.flush();
+	     
+		BufferedReader bufRead  = new BufferedReader(new InputStreamReader(mySocket.getInputStream()));
+		String outStr;
+
+        //Prints each line of the response 
+        while((outStr = bufRead.readLine()) != null){
+            System.out.println(outStr);
+        }
+
+
+        //Closes out buffer and writer
+        bufRead.close();
+        wtr.close();
 		
 	}
 	
+		
+		
+		
+
 	
 	
 	
+	
+//Help Method
 	
 	public void httpcHelp(String[] str) {
 		if(str.length==2 & str[0].equals("httpc") & str[1].equals("help")) {
