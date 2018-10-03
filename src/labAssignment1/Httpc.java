@@ -145,6 +145,7 @@ public class Httpc {
 		String host="";
 		String content_Type_Info="";
 		String content_Data_Info="";
+		int dataLen=0;
 		
 		for (int i = 0; i < str.length; i++) {
 			if(str[i].equals("-h")) {
@@ -165,7 +166,7 @@ public class Httpc {
 		//Content_Data
 		contentDataArray=content_Data.split(":");
 		content_Data_Info=contentDataArray[0]+":"+contentDataArray[1];
-		int varLen=content_Data_Info.length();
+		dataLen=content_Data_Info.length();
 		
 		@SuppressWarnings("resource")
 		Socket mySocket=new Socket(host,80);
@@ -173,7 +174,7 @@ public class Httpc {
 		 wtr.println("POST /post HTTP/1.1");
 	     wtr.println("Host: "+ host);
 	     wtr.println(content_Type_Info);
-	     wtr.println("Content-Length: " + varLen);
+	     wtr.println("Content-Length: " + dataLen);
 	     wtr.println("");
 	     wtr.print(content_Data_Info);
 	     wtr.flush();
