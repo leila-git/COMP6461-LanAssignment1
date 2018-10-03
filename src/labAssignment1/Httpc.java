@@ -1,6 +1,8 @@
 package labAssignment1;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -183,11 +185,20 @@ public class Httpc {
 		String outStr;
 
         //Prints each line of the response 
+		String totalOutStr="";
+
+        //Prints each line of the response 
         while((outStr = bufRead.readLine()) != null){
-            System.out.println(outStr);
+        	totalOutStr = totalOutStr + outStr +System.lineSeparator(); 
         }
-
-
+        int splitat=totalOutStr.indexOf("{");
+        String verbosePart = totalOutStr.substring(0, splitat) ;
+        System.out.println(verbosePart);
+        String fileName="a.txt";
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+        writer.write(totalOutStr);
+         
+        writer.close();
         //Closes out buffer and writer
         bufRead.close();
         wtr.close();
