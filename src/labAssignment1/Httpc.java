@@ -3,6 +3,7 @@ package labAssignment1;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -95,8 +96,8 @@ public class Httpc {
 			wtr.close();
 		}
 
-		// Get with verbose option
-		if (str.length == 6 & str[2].equals("-v")) {
+		// Get with verbose option and -o
+		if (str[2].equals("-v")) {
 			strGetUrl = str[3];
 			strGetUrl = strGetUrl.replace("'", "");
 
@@ -131,9 +132,10 @@ public class Httpc {
 					writer.write(totalOutStr);
 					writer.close();
 
-				} else {
-					System.out.println(totalOutStr);
 				}
+			}
+			if (fileName.isEmpty()) {
+				System.out.println(totalOutStr);
 			}
 
 			// Closes out buffer and writer
@@ -145,7 +147,6 @@ public class Httpc {
 	}
 
 	// Post Method
-
 	public void httpcPost(String[] str) throws IOException {
 		String strUrl = str[str.length - 1];
 		String content_Type = "";
@@ -158,54 +159,141 @@ public class Httpc {
 		String content_Data_Info = "";
 		int dataLen = 0;
 		String fileName = "";
-		
 
-		for (int i = 0; i < str.length; i++) {
-			if (str[i].equals("-h")) {
-				content_Type = str[i + 1];
-			} else if (str[i].equals("-d")) {
-				content_Data = str[i + 1];
-			} else if (str[i].equals("-f")) {
-				fileName=str[i+1];
+		// post with query parameters
+		if (str[2].equals("-h")) {
+			for (int i = 0; i < str.length; i++) {
+				if (str[i].equals("-h")) {
+					content_Type = str[i + 1];
+				} else if (str[i].equals("-d")) {
+					content_Data = str[i + 1];
+				} else if (str[i].equals("-f")) {
+					fileName = str[i + 1];
+					content_Data = fileName;
+				}
+
 			}
-				
+
+			// host
+			strUrlArray = strUrl.split("/");
+			host = strUrlArray[2];
+
+			// Content_Type
+			contentTypeArray = content_Type.split(":");
+			content_Type_Info = contentTypeArray[0] + ":" + contentTypeArray[1];
+
+			// Content_Data
+			if (content_Data == fileName) {
+				BufferedReader reader = new BufferedReader(new FileReader(fileName));
+				while ((content_Data = reader.readLine()) != null) {
+					contentDataArray = content_Data.split(":");
+					content_Data_Info = contentDataArray[0] + ":" + contentDataArray[1];
+					dataLen = content_Data_Info.length();
+				}
+
+				reader.close();
+
+			} else {
+				content_Data = content_Data.replace("'", "");
+				contentDataArray = content_Data.split(":");
+				content_Data_Info = contentDataArray[0] + ":" + contentDataArray[1];
+				dataLen = content_Data_Info.length();
+
+			}
+
+			@SuppressWarnings("resource")
+			Socket mySocket = new Socket(host, 80);
+			PrintWriter wtr = new PrintWriter(mySocket.getOutputStream());
+			wtr.println("POST /post HTTP/1.1");
+			wtr.println("Host: " + host);
+			wtr.println(content_Type_Info);
+			wtr.println("Content-Length: " + dataLen);
+			wtr.println("");
+			wtr.print(content_Data_Info);
+			wtr.flush();
+
+			BufferedReader bufRead = new BufferedReader(new InputStreamReader(mySocket.getInputStream()));
+			String outStr;
+
+			// Prints each line of the response
+			String totalOutStr = "";
+			while ((outStr = bufRead.readLine()) != null) {
+				totalOutStr = totalOutStr + outStr + System.lineSeparator();
+			}
+			int splitat = totalOutStr.indexOf("{");
+			String body = totalOutStr.substring(splitat + 1);
+			System.out.println(body);
+
+			// Closes out buffer and writer
+			bufRead.close();
+			wtr.close();
+
 		}
 
-		// host
-		strUrlArray = strUrl.split("/");
-		host = strUrlArray[2];
+		// verbose option
+		if (str[2].equals("-v")) {
+			for (int i = 0; i < str.length; i++) {
+				if (str[i].equals("-v")) {
+					content_Type = str[i + 1];
+				} else if (str[i].equals("-d")) {
+					content_Data = str[i + 1];
+				} else if (str[i].equals("-f")) {
+					fileName = str[i + 1];
+					content_Data = fileName;
+				}
 
-		// Content_Type
-		contentTypeArray = content_Type.split(":");
-		content_Type_Info = contentTypeArray[0] + ":" + contentTypeArray[1];
+			}
 
-		// Content_Data
-		contentDataArray = content_Data.split(":");
-		content_Data_Info = contentDataArray[0] + ":" + contentDataArray[1];
-		dataLen = content_Data_Info.length();
+			// host
+			strUrlArray = strUrl.split("/");
+			host = strUrlArray[2];
 
-		@SuppressWarnings("resource")
-		Socket mySocket = new Socket(host, 80);
-		PrintWriter wtr = new PrintWriter(mySocket.getOutputStream());
-		wtr.println("POST /post HTTP/1.1");
-		wtr.println("Host: " + host);
-		wtr.println(content_Type_Info);
-		wtr.println("Content-Length: " + dataLen);
-		wtr.println("");
-		wtr.print(content_Data_Info);
-		wtr.flush();
+			// Content_Type
+			contentTypeArray = content_Type.split(":");
+			content_Type_Info = contentTypeArray[0] + ":" + contentTypeArray[1];
 
-		BufferedReader bufRead = new BufferedReader(new InputStreamReader(mySocket.getInputStream()));
-		String outStr;
+			// Content_Data
+			if (content_Data == fileName) {
+				BufferedReader reader = new BufferedReader(new FileReader(fileName));
+				while ((content_Data = reader.readLine()) != null) {
+					contentDataArray = content_Data.split(":");
+					content_Data_Info = contentDataArray[0] + ":" + contentDataArray[1];
+					dataLen = content_Data_Info.length();
+				}
 
-		// Prints each line of the response
-		while ((outStr = bufRead.readLine()) != null) {
-			System.out.println(outStr);
+				reader.close();
+
+			} else {
+				content_Data = content_Data.replace("'", "");
+				contentDataArray = content_Data.split(":");
+				content_Data_Info = contentDataArray[0] + ":" + contentDataArray[1];
+				dataLen = content_Data_Info.length();
+
+			}
+
+			@SuppressWarnings("resource")
+			Socket mySocket = new Socket(host, 80);
+			PrintWriter wtr = new PrintWriter(mySocket.getOutputStream());
+			wtr.println("POST /post HTTP/1.1");
+			wtr.println("Host: " + host);
+			wtr.println(content_Type_Info);
+			wtr.println("Content-Length: " + dataLen);
+			wtr.println("");
+			wtr.print(content_Data_Info);
+			wtr.flush();
+
+			BufferedReader bufRead = new BufferedReader(new InputStreamReader(mySocket.getInputStream()));
+			String outStr;
+
+			// Prints each line of the response
+			while ((outStr = bufRead.readLine()) != null) {
+				System.out.println(outStr);
+			}
+
+			// Closes out buffer and writer
+			bufRead.close();
+			wtr.close();
 		}
-
-		// Closes out buffer and writer
-		bufRead.close();
-		wtr.close();
 
 	}
 
